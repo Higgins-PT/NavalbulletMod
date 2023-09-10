@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Modding;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace Navalmod
         public Quaternion nowqua;
         public Vector3 deltavec;
         public Rigidbody rb;
+        public float pingtime;
         public float time;
         public float maxtime;
         public bool haschange = false;
@@ -36,12 +38,24 @@ namespace Navalmod
             Quaternion quat;
             H3NetCompression.DecompressPosition(buffer, offset,out vector3);//12
             NetworkCompression.DecompressRotation(buffer, offset+12, out quat);//7
+            
+           
             lastpos = blockBehaviour.transform.position;
             lastqua = blockBehaviour.transform.rotation;
             nowpos = vector3;
             nowqua = quat;
             haschange = true;
-            SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, blockBehaviour.transform.position);
+            if (pingtime == 0)
+            {
+                SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, blockBehaviour.transform.position);
+            }
+            else
+            {
+                time = pingtime;
+                maxtime = time;
+            }
+            pingtime = 0;
+            
 
 
             offset += 19;
@@ -55,7 +69,8 @@ namespace Navalmod
                 if (blockBehaviour.isSimulating) {
                     if (haschange)
                     {
-                        blockBehaviour.transform.position = (nowpos - lastpos).normalized * (maxtime - time) / maxtime + lastpos;
+                        pingtime += Time.deltaTime;
+                        blockBehaviour.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
                         blockBehaviour.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
                     }
                 }

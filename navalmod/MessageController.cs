@@ -506,8 +506,8 @@ namespace Navalmod
                             ArrowTurretBlock navalCannoBlockE = match;
                             GameObject canball = (GameObject)UnityEngine.Object.Instantiate(navalCannoBlockE.cannonball, (Vector3)msg.GetData(2), navalCannoBlockE.CB.transform.rotation);
                             Rigidbody rigidbody = canball.GetComponent<Rigidbody>();
-                            rigidbody.transform.position = navalCannoBlockE.CB.projectileSpawnPos.position;
-                            navalCannoBlockE.CB.gameObject.GetComponent<Rigidbody>().AddForce(navalCannoBlockE.shootspeed.Value * navalCannoBlockE.transform.up * navalCannoBlockE.backlash.Value);
+                            //rigidbody.transform.position = navalCannoBlockE.CB.projectileSpawnPos.position;
+                            //navalCannoBlockE.CB.gameObject.GetComponent<Rigidbody>().AddForce(navalCannoBlockE.shootspeed.Value * navalCannoBlockE.transform.up * navalCannoBlockE.backlash.Value);
                             rigidbody.velocity = (Vector3)msg.GetData(3);
                             canball.SetActive(true);
                             canball.isStatic = false;
@@ -516,7 +516,7 @@ namespace Navalmod
 
                         }
                     }
-
+                    
                     
                 }
             };

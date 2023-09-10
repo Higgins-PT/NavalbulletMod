@@ -792,6 +792,7 @@ namespace Navalmod
             }
             else
             {
+
                 if (StatMaster.isHosting)
                 {
 

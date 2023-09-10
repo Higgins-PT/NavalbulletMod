@@ -17,6 +17,9 @@ namespace Navalmod
         private float time;
         public H3NetworkManager()
         {
+            OptionsMaster.maxSendRate = 10000000f;
+            OptionsMaster.defaultSendRate = 10000000f;
+            
             Messages.H3NetBlock = ModNetworking.CreateMessageType(new DataType[]
             {
                 DataType.ByteArray
@@ -65,9 +68,16 @@ namespace Navalmod
                 byte[] playerbytes = new byte[playerlenght];
                 Buffer.BlockCopy(bytes, offset, playerbytes, 0, playerlenght);
                 offset += playerlenght;
-                PullPlayer(playerbytes);
-                
+                try
+                {
+                    PullPlayer(playerbytes);
+                }
+                catch
+                {
+
+                }
             }
+            
 
         }
         public void PullPlayer(byte[] bytes)
@@ -79,7 +89,8 @@ namespace Navalmod
             try
             {
                 PlayerData playerData = Playerlist.GetPlayer(playid);
-                List<BlockBehaviour> blockBehaviours = FindObjectsOfType<BlockBehaviour>().ToList();
+                //List<BlockBehaviour> blockBehaviours = FindObjectsOfType<BlockBehaviour>().ToList();
+                List<BlockBehaviour> blockBehaviours = ReferenceMaster.GetAllSimulationBlocks();
                 try
                 {
                     playerData.machine.networkBlocks = new NetworkBlock[0];
@@ -90,21 +101,35 @@ namespace Navalmod
 
                 }
                 offset += 2;
-                for (int i = 0; i < blocknum; i++)
+                try
                 {
-                    Guid guid=Int2Guid(BitConverter.ToInt32(bytes, offset), BitConverter.ToInt32(bytes, offset+4), BitConverter.ToInt32(bytes, offset+8), BitConverter.ToInt32(bytes, offset+12));
-                    offset += 16;
-                    for (int n = 0; n < blockBehaviours.Count;n++)
+                    for (int i = 0; i < blocknum; i++)
                     {
-                        if (blockBehaviours[n].BuildingBlock.Guid == guid && blockBehaviours[n].ParentMachine.PlayerID == playid)
+                        Guid guid = Int2Guid(BitConverter.ToInt32(bytes, offset), BitConverter.ToInt32(bytes, offset + 4), BitConverter.ToInt32(bytes, offset + 8), BitConverter.ToInt32(bytes, offset + 12));
+                        offset += 16;
+
+                        for (int n = 0; n < blockBehaviours.Count; n++)
                         {
-                            
-                            BlockBehaviour blockBehaviour = blockBehaviours[n];
-                            blockBehaviours.Remove(blockBehaviour);
-                            blockBehaviour.GetComponent<H3NetworkBlock>().PullObject(ref offset , bytes);
-                            break;
+                            try
+                            {
+                                if (blockBehaviours[n].BuildingBlock.Guid == guid && blockBehaviours[n].ParentMachine.PlayerID == playid)
+                                {
+                                    BlockBehaviour blockBehaviour = blockBehaviours[n];
+                                    blockBehaviours.Remove(blockBehaviour);
+                                    blockBehaviour.GetComponent<H3NetworkBlock>().PullObject(ref offset, bytes);
+                                    break;
+                                }
+                            }
+                            catch
+                            {
+
+                            }
                         }
+
                     }
+                }
+                catch
+                {
 
                 }
                
@@ -138,7 +163,6 @@ namespace Navalmod
             ret[number + 3] = bytes2[3];
             number += 4;
             NetworkCompression.WriteArray(send, ret, number);
-            ModConsole.Log("发送成功");
             return ret;
         }
         public byte[] PushPlayer(ushort player)//blockcount 4 + playerid 2 + {block...(blockid+blockpos+blockrot)(35*block*count)}   blockcount*35+6
