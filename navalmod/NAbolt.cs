@@ -10,7 +10,7 @@ using SRF.UI.Layout;
 namespace Navalmod
 {
 	// Token: 0x02000009 RID: 9
-	public class NAbolt : BlockBehaviour
+	public class NAbolt : MonoBehaviour
 	{
         // Token: 0x0600001E RID: 30
         Thread thread;
@@ -147,25 +147,7 @@ namespace Navalmod
 
 		// Token: 0x06000021 RID: 33
         private TrailRenderer TrailRenderer;
-		public bool explodeMS(int mask)
-		{
-            
-			bool result;
-			if (!base.isSimulating || !base.SimPhysics)
-			{
-				result = false;
-			}
-			else if ((mask & 32) != 0)
-			{
-				this.explodeM();
-				result = true;
-			}
-			else
-			{
-				result = false;
-			}
-			return result;
-		}
+
 
         // Token: 0x06000022 RID: 34
         public bool hit3;
@@ -785,9 +767,10 @@ namespace Navalmod
 
 		public void destoryball()
 		{
+            UnityEngine.Object.Destroy(gameObject);
             if (simplehe == 1)
-            {
-                UnityEngine.Object.Destroy(gameObject);
+            {  
+                
 
             }
             else
@@ -796,7 +779,7 @@ namespace Navalmod
                 if (StatMaster.isHosting)
                 {
 
-
+                    /*
                     try
                     {
 
@@ -815,7 +798,7 @@ namespace Navalmod
                     {
 
                     }
-                    this.NavalCannoBlockE.nAbolts.Remove(this);
+                    this.NavalCannoBlockE.nAbolts.Remove(this);*/
                     UnityEngine.Object.Destroy(gameObject);
                 }
             }

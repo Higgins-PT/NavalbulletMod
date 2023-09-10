@@ -479,6 +479,7 @@ namespace Navalmod
                                 rigidbody.velocity = (Vector3)msg.GetData(3);
                                 canball.SetActive(true);
                                 canball.isStatic = false;
+                                navalCannoBlockE.shootsound();
                                 break;
                             }
                         }
@@ -512,6 +513,7 @@ namespace Navalmod
                             canball.SetActive(true);
                             canball.isStatic = false;
                             canball.GetComponent<NAbolt>().simplehe = 1;
+                            navalCannoBlockE.shootsound();
                             break;
 
                         }
@@ -524,7 +526,7 @@ namespace Navalmod
             {
                 if (StatMaster.isClient)
                 {
-
+                    /*
                     String guid = (string)msg.GetData(0);
                     int typeE = (int)msg.GetData(3);
                     if (typeE == 0)//炮弹
@@ -564,7 +566,7 @@ namespace Navalmod
                             }
                         }
                     }
-                    
+                    */
 
 
                 }

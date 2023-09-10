@@ -713,6 +713,7 @@ namespace Navalmod
 
                     cannonball.transform.position = this.CB.transform.TransformPoint(this.CB.boltSpawnPos);
                     NAbolt nAbolt = canball.GetComponent<NAbolt>();
+
                     try
                     {
                         foreach (flakN flakN in AIflak.Instance.flakNs)
@@ -785,7 +786,7 @@ namespace Navalmod
 		}
 
 		// Token: 0x06000086 RID: 134
-		private void shootsound()
+		public void shootsound()
 		{
             Effect();
             if (this.navalhe.boomvoice)

@@ -44,7 +44,8 @@ namespace Navalmod
                 {
                     time = 0;
 
-                    
+                    //ModConsole.Log(PushAllPlayers().Length.ToString());
+
                     ModNetworking.SendToAll(Messages.H3NetBlock.CreateMessage(new object[]
                 {
                     PushAllPlayers()

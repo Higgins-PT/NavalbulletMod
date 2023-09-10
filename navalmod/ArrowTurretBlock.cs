@@ -624,7 +624,7 @@ namespace Navalmod
         {
             try
             {
-                SingleInstance<waterE>.Instance.EmitSparksE(this.CB.projectileSpawnPos.transform.position - base.transform.up * 1f * base.transform.localScale.y, this.scale.Value);
+                
 
                 GameObject canball = (GameObject)UnityEngine.Object.Instantiate(cannonball, this.CB.projectileSpawnPos.position, CB.transform.rotation);
 
@@ -719,8 +719,9 @@ namespace Navalmod
         }
 
         // Token: 0x06000086 RID: 134
-        private void shootsound()
+        public void shootsound()
         {
+            SingleInstance<waterE>.Instance.EmitSparksE(this.CB.projectileSpawnPos.transform.position - base.transform.up * 1f * base.transform.localScale.y, this.scale.Value);
             if (this.navalhe.boomvoice)
             {
                 this.cannonshoot.spatialBlend = 1f;
