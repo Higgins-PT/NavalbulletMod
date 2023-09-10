@@ -80,10 +80,10 @@ namespace Navalmod
             {
                 PlayerData playerData = Playerlist.GetPlayer(playid);
                 List<BlockBehaviour> blockBehaviours = FindObjectsOfType<BlockBehaviour>().ToList();
-                ModConsole.Log(blockBehaviours.Count.ToString());
                 try
                 {
                     playerData.machine.networkBlocks = new NetworkBlock[0];
+
                 }
                 catch
                 {
