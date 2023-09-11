@@ -95,6 +95,7 @@ namespace Navalmod
         public void PullPlayer(byte[] bytes)
         {
             List<byteAndBB> byteandbb = new List<byteAndBB>();
+            List<H3NetworkBlock> rePos = new List<H3NetworkBlock>();
             int offset = 0;
             int blocknum = BitConverter.ToInt32(bytes, offset);
             offset += 4;
@@ -145,7 +146,7 @@ namespace Navalmod
                                                 H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>();
                                                 h3NetworkBlock.islocal = false;
                                                 h3NetworkBlock.PullObject(ref offset, bytes);
-                                                
+                                                rePos.Add(h3NetworkBlock);
                                             }
                                             catch
                                             {
@@ -159,7 +160,7 @@ namespace Navalmod
                                                 H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.GetComponent<H3NetworkBlock>();
                                                 h3NetworkBlock.islocal = false;
                                                 h3NetworkBlock.PullObject(ref offset, bytes);
-                                                
+                                                rePos.Add(h3NetworkBlock);
                                             }
                                             catch
                                             {
@@ -210,6 +211,10 @@ namespace Navalmod
                     int offsetE = 0;
                     offsetE = byteAndBB.offset;
                     h3NetworkBlock.PullObject(ref offsetE, bytes);
+                }
+                foreach (H3NetworkBlock h3NetworkBlock1 in rePos)
+                {
+                    h3NetworkBlock1.LerpPos();
                 }
             }
             catch

@@ -55,14 +55,25 @@ namespace Navalmod
 
                 lastpos = base.transform.position;
                 lastqua = base.transform.rotation;
-                nowpos = vector3;
+               
                 
                 if (islocal)
                 {
+                    lastpos = base.transform.localPosition;
+                    lastqua = base.transform.localRotation;
                 }
+                nowpos = vector3;
                 nowqua = quat;
                 base.transform.position = nowpos;
                 base.transform.rotation = nowqua;
+                if (islocal)
+                {
+                    nowpos = base.transform.localPosition;
+                    nowqua = base.transform.localRotation;
+                    base.transform.localPosition = lastpos;
+                    base.transform.localRotation = lastqua;
+                }
+               
                 haschange = true;
                 if (pingtime == 0)
                 {
@@ -71,11 +82,11 @@ namespace Navalmod
                 }
                 else
                 {
-                    /*
+                    
                     if (islocal)
                     {
                         pingtime = GetComponentInParent<H3NetworkBlock>().pingtime;
-                    }*/
+                    }
                     time = pingtime;
                     maxtime = time;
                 }
@@ -100,7 +111,9 @@ namespace Navalmod
                     {
                         if (islocal)
                         {
-
+                            pingtime += Time.deltaTime;
+                            base.transform.localPosition = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
+                            base.transform.localRotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
                         }
                         else
                         {
@@ -112,6 +125,11 @@ namespace Navalmod
                     }
                 }
             }
+        }
+        public void LerpPos()
+        {
+            base.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
+            base.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
         }
         public void SmoothToPoint(float time,Vector3 nowpos,Vector3 lastpos)
         {
