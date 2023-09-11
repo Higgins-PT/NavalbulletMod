@@ -12,23 +12,34 @@ namespace Navalmod
         public BlockBehaviour ClusterBaseBlock;
         Quaternion rotLast;
         public bool send;
+        public float time;
+        public GameObject targetobj;
+
         public void FixedUpdate()
         {
-            Quaternion n = GetLocalRotation();
-            if (Quaternion.Angle(n,rotLast)>1f)
+            time -= Time.deltaTime;
+            if (time <= 0)
             {
-                send = true;
-                rotLast = n;
+                time = SingleInstance<H3NetworkManager>.Instance.rateSend;
+                Quaternion n = GetLocalRotation();
+                if (Quaternion.Angle(n, rotLast) > 1f)
+                {
+                    send = true;
+                    rotLast = n;
+                }
             }
             
         }
         public Quaternion GetLocalRotation()
         {
-            GameObject targetobj = new GameObject("targetobj");
+            if (targetobj==null) {
+                targetobj = new GameObject("targetobj");
+            }
+            targetobj.transform.SetParent(null);
             targetobj.transform.rotation = ClusterBaseBlock.transform.rotation;
             targetobj.transform.parent = base.transform;
             Quaternion qua = targetobj.transform.localRotation;
-            Destroy(targetobj);
+            //Destroy(targetobj);
             return qua;
         }
     }
