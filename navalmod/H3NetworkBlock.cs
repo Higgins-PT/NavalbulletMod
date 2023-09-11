@@ -20,6 +20,8 @@ namespace Navalmod
         public float time;
         public float maxtime;
         public bool haschange = false;
+        public bool islocal = false;
+        public bool localchangeenter;
         public H3NetworkBlock()
         {
             lastpos = Vector3.zero;
@@ -28,8 +30,8 @@ namespace Navalmod
         }
         public void PushObject(ref int offset, byte[] buffer)// byte[19]
         {
-            H3NetCompression.CompressPosition(blockBehaviour.transform.position, buffer, offset);//12
-            NetworkCompression.CompressRotation(blockBehaviour.transform.rotation, buffer,offset + 12);//7
+            H3NetCompression.CompressPosition(base.transform.position, buffer, offset);//12
+            NetworkCompression.CompressRotation(base.transform.rotation, buffer,offset + 12);//7
             offset += 19;
         }
         public void PullObject(ref int offset, byte[] buffer)// byte[19]
@@ -40,14 +42,14 @@ namespace Navalmod
             NetworkCompression.DecompressRotation(buffer, offset+12, out quat);//7
             
            
-            lastpos = blockBehaviour.transform.position;
-            lastqua = blockBehaviour.transform.rotation;
+            lastpos = base.transform.position;
+            lastqua = base.transform.rotation;
             nowpos = vector3;
             nowqua = quat;
             haschange = true;
             if (pingtime == 0)
             {
-                SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, blockBehaviour.transform.position);
+                SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, base.transform.position);
             }
             else
             {
@@ -55,7 +57,6 @@ namespace Navalmod
                 maxtime = time;
             }
             pingtime = 0;
-            
 
 
             offset += 19;
@@ -69,9 +70,21 @@ namespace Navalmod
                 if (blockBehaviour.isSimulating) {
                     if (haschange)
                     {
-                        pingtime += Time.deltaTime;
-                        blockBehaviour.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
-                        blockBehaviour.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
+                        if (islocal)
+                        {
+                            if (time >= 0)
+                            {
+                                pingtime += Time.deltaTime;
+                                base.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
+                                base.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
+                            }
+                        }
+                        else
+                        {
+                            pingtime += Time.deltaTime;
+                            base.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
+                            base.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
+                        }
                     }
                 }
             }

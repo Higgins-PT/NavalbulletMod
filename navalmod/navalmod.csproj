@@ -125,6 +125,7 @@
     <Compile Include="flakc.cs" />
     <Compile Include="flakN.cs" />
     <Compile Include="FrameInfo %281%29.cs" />
+    <Compile Include="H3ClustersTest.cs" />
     <Compile Include="H3NetCompression.cs" />
     <Compile Include="H3NetworkBlock.cs" />
     <Compile Include="H3NetworkManager.cs" />

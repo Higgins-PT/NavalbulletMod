@@ -116,8 +116,32 @@ namespace Navalmod
                                 if (blockBehaviours[n].BuildingBlock.Guid == guid && blockBehaviours[n].ParentMachine.PlayerID == playid)
                                 {
                                     BlockBehaviour blockBehaviour = blockBehaviours[n];
-                                    blockBehaviours.Remove(blockBehaviour);
-                                    blockBehaviour.GetComponent<H3NetworkBlock>().PullObject(ref offset, bytes);
+                                    if (blockBehaviour.transform.parent.name == (blockBehaviour.transform.name + "Base"))
+                                    {
+                                        if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>()==null)
+                                        {
+                                            blockBehaviour.transform.parent.gameObject.AddComponent<H3NetworkBlock>().blockBehaviour = blockBehaviour;
+
+                                        }
+                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>();
+                                        h3NetworkBlock.PullObject(ref offset, bytes);
+                                        h3NetworkBlock.islocal = false;
+                                    }
+                                    else if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>()==null)
+                                    {
+                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.GetComponent<H3NetworkBlock>();
+                                        h3NetworkBlock.PullObject(ref offset, bytes);
+                                        h3NetworkBlock.islocal = false;
+                                    }
+                                    else
+                                    {
+                                        
+                                        blockBehaviours.Remove(blockBehaviour);
+                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.GetComponent<H3NetworkBlock>();
+                                        h3NetworkBlock.PullObject(ref offset, bytes);
+                                        h3NetworkBlock.islocal = true;
+                                        
+                                    }
                                     break;
                                 }
                             }
@@ -169,10 +193,31 @@ namespace Navalmod
         public byte[] PushPlayer(ushort player)//blockcount 4 + playerid 2 + {block...(blockid+blockpos+blockrot)(35*block*count)}   blockcount*35+6
         {
             PlayerData playerData=Playerlist.Players[player];
-            byte[][] send = new byte[playerData.machine.SimulationBlocks.Count][];
-            for (int i = 0; i < playerData.machine.SimulationBlocks.Count; i++)
+
+            List<BlockBehaviour> blockBehaviours = new List<BlockBehaviour>();
+            foreach (Machine.SimCluster block in playerData.machine.simClusters)
             {
-                BlockBehaviour blockBehaviour = playerData.machine.SimulationBlocks[i];
+                foreach (BlockBehaviour blockBehaviour in block.Blocks)
+                {
+                    if (blockBehaviour.transform.GetComponent<H3ClustersTest>() == null && blockBehaviour!=block.Base)
+                    {
+                        blockBehaviour.transform.gameObject.AddComponent<H3ClustersTest>().ClusterBaseBlock = block.Base;
+
+                    }
+                    H3ClustersTest h3ClustersTest = blockBehaviour.transform.GetComponent<H3ClustersTest>();
+                    if (h3ClustersTest.send == true)
+                    {
+                        h3ClustersTest.send = false;
+                        blockBehaviours.Add(blockBehaviour);
+                    }
+                }
+                blockBehaviours.Add(block.Base);
+            }
+            byte[][] send = new byte[blockBehaviours.Count][];
+            for (int i = 0; i < blockBehaviours.Count; i++)
+            {
+
+                BlockBehaviour blockBehaviour = blockBehaviours[i];
                 try
                 {
                     H3NetworkBlock h3NetworkBlock = blockBehaviour.GetComponent<H3NetworkBlock>();
@@ -201,7 +246,7 @@ namespace Navalmod
                 bytecount += bytes1.Length;
             }
             byte[] sendreturn = new byte[bytecount+6];
-            byte[] bytes2 = BitConverter.GetBytes(playerData.machine.SimulationBlocks.Count);
+            byte[] bytes2 = BitConverter.GetBytes(blockBehaviours.Count);
             sendreturn[number] = bytes2[0];
             sendreturn[number + 1] = bytes2[1];
             sendreturn[number + 2] = bytes2[2];
