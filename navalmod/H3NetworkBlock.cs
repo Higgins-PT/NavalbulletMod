@@ -22,6 +22,7 @@ namespace Navalmod
         public bool haschange = false;
         public bool islocal = false;
         public bool localchangeenter;
+        public bool isClusterBase;
         public H3NetworkBlock()
         {
             lastpos = Vector3.zero;
@@ -34,32 +35,59 @@ namespace Navalmod
             NetworkCompression.CompressRotation(base.transform.rotation, buffer,offset + 12);//7
             offset += 19;
         }
+        public void PushObjectLocal(ref int offset, byte[] buffer)// byte[19]
+        {
+            BlockBehaviour bb = base.GetComponent<H3ClustersTest>().ClusterBaseBlock;
+            H3NetCompression.CompressPosition(bb.transform.InverseTransformPoint(base.transform.position), buffer, offset);//12
+            ModConsole.Log(bb.transform.InverseTransformPoint(base.transform.position).ToString()+"localsend");
+            NetworkCompression.CompressRotation(Quaternion.Inverse(bb.transform.rotation) * base.transform.rotation, buffer, offset + 12);//7
+            offset += 19;
+        }
         public void PullObject(ref int offset, byte[] buffer)// byte[19]
         {
-            Vector3 vector3;
-            Quaternion quat;
-            H3NetCompression.DecompressPosition(buffer, offset,out vector3);//12
-            NetworkCompression.DecompressRotation(buffer, offset+12, out quat);//7
-            
-           
-            lastpos = base.transform.position;
-            lastqua = base.transform.rotation;
-            nowpos = vector3;
-            nowqua = quat;
-            haschange = true;
-            if (pingtime == 0)
+            try
             {
-                SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, base.transform.position);
-            }
-            else
-            {
-                time = pingtime;
-                maxtime = time;
-            }
-            pingtime = 0;
+                Vector3 vector3;
+                Quaternion quat;
+                H3NetCompression.DecompressPosition(buffer, offset, out vector3);//12
+                NetworkCompression.DecompressRotation(buffer, offset + 12, out quat);//7
 
 
-            offset += 19;
+                lastpos = base.transform.position;
+                lastqua = base.transform.rotation;
+                nowpos = vector3;
+                
+                if (islocal)
+                {
+                }
+                nowqua = quat;
+                base.transform.position = nowpos;
+                base.transform.rotation = nowqua;
+                haschange = true;
+                if (pingtime == 0)
+                {
+                    SmoothToPoint(SingleInstance<H3NetworkManager>.Instance.rateSend, nowpos, base.transform.position);
+
+                }
+                else
+                {
+                    /*
+                    if (islocal)
+                    {
+                        pingtime = GetComponentInParent<H3NetworkBlock>().pingtime;
+                    }*/
+                    time = pingtime;
+                    maxtime = time;
+                }
+                pingtime = 0;
+
+
+                offset += 19;
+            }
+            catch
+            {
+
+            }
         }
         public void Update()
         {
@@ -72,15 +100,11 @@ namespace Navalmod
                     {
                         if (islocal)
                         {
-                            if (time >= 0)
-                            {
-                                pingtime += Time.deltaTime;
-                                base.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
-                                base.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);
-                            }
+
                         }
                         else
                         {
+
                             pingtime += Time.deltaTime;
                             base.transform.position = Vector3.Lerp(lastpos, nowpos, (maxtime - Math.Max(time, 0)) / maxtime);
                             base.transform.rotation = Quaternion.Lerp(lastqua, nowqua, (maxtime - Math.Max(time, 0)) / maxtime);

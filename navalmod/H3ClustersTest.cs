@@ -14,6 +14,7 @@ namespace Navalmod
         public bool send;
         public float time;
         public GameObject targetobj;
+        public float disLast;
 
         public void FixedUpdate()
         {
@@ -21,26 +22,22 @@ namespace Navalmod
             if (time <= 0)
             {
                 time = SingleInstance<H3NetworkManager>.Instance.rateSend;
+                float i = (ClusterBaseBlock.transform.position - base.transform.position).magnitude;
                 Quaternion n = GetLocalRotation();
-                if (Quaternion.Angle(n, rotLast) > 1f)
+                if (Quaternion.Angle(n, rotLast) > 1f || Mathf.Abs(disLast-i)>0.3f)
                 {
+
                     send = true;
                     rotLast = n;
+                    disLast = i;
                 }
             }
             
         }
         public Quaternion GetLocalRotation()
         {
-            if (targetobj==null) {
-                targetobj = new GameObject("targetobj");
-            }
-            targetobj.transform.SetParent(null);
-            targetobj.transform.rotation = ClusterBaseBlock.transform.rotation;
-            targetobj.transform.parent = base.transform;
-            Quaternion qua = targetobj.transform.localRotation;
             //Destroy(targetobj);
-            return qua;
+            return Quaternion.Inverse(ClusterBaseBlock.transform.rotation) * base.transform.rotation;
         }
     }
 }

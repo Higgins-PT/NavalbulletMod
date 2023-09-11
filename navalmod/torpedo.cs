@@ -545,7 +545,7 @@ namespace Navalmod
         }
         public IEnumerator explodeM()
         {
-
+            Destroy(base.gameObject.GetComponent<H3NetworkBlock>());
                 if (!StatMaster.isClient && this.canexplo)
                 {
                     this.canexplo = false;

@@ -767,6 +767,11 @@ namespace Navalmod
 
 		public void destoryball()
 		{
+            if (simplehe == 2)
+            {
+                Destroy(base.gameObject.GetComponent<H3NetworkBlock>());
+                
+            }
             UnityEngine.Object.Destroy(gameObject);
             if (simplehe == 1)
             {  

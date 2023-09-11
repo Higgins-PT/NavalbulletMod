@@ -7,6 +7,16 @@ using UnityEngine;
 
 namespace Navalmod
 {
+    public struct byteAndBB
+    {
+        public byteAndBB(BlockBehaviour blockBehaviour,int b)
+        {
+            bb = blockBehaviour;
+            offset = b;
+        }
+        public BlockBehaviour bb;
+        public int offset;
+    }
     public class H3NetworkManager : SingleInstance<H3NetworkManager>
     {
         public float rateSend { 
@@ -33,6 +43,7 @@ namespace Navalmod
 
             };
         }
+        
         public override string Name => "manager";
         public byte[] test;
         public void FixedUpdate()
@@ -83,6 +94,7 @@ namespace Navalmod
         }
         public void PullPlayer(byte[] bytes)
         {
+            List<byteAndBB> byteandbb = new List<byteAndBB>();
             int offset = 0;
             int blocknum = BitConverter.ToInt32(bytes, offset);
             offset += 4;
@@ -95,7 +107,10 @@ namespace Navalmod
                 try
                 {
                     playerData.machine.networkBlocks = new NetworkBlock[0];
-
+                    foreach (Machine.SimCluster simCluster in playerData.machine.simClusters)
+                    {
+                        simCluster.BaseTransform.GetComponent<H3NetworkBlock>().isClusterBase = true;
+                    }
                 }
                 catch
                 {
@@ -116,31 +131,62 @@ namespace Navalmod
                                 if (blockBehaviours[n].BuildingBlock.Guid == guid && blockBehaviours[n].ParentMachine.PlayerID == playid)
                                 {
                                     BlockBehaviour blockBehaviour = blockBehaviours[n];
-                                    if (blockBehaviour.transform.parent.name == (blockBehaviour.transform.name + "Base"))
+                                    try
                                     {
-                                        if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>()==null)
+                                        if (blockBehaviour.transform.parent.name == (blockBehaviour.transform.name + "Base") && blockBehaviour.transform.GetComponent<H3NetworkBlock>().isClusterBase == true)
                                         {
-                                            blockBehaviour.transform.parent.gameObject.AddComponent<H3NetworkBlock>().blockBehaviour = blockBehaviour;
+                                            try
+                                            {
+                                                if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>() == null)
+                                                {
+                                                    blockBehaviour.transform.parent.gameObject.AddComponent<H3NetworkBlock>().blockBehaviour = blockBehaviour;
 
+                                                }
+                                                H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>();
+                                                h3NetworkBlock.islocal = false;
+                                                h3NetworkBlock.PullObject(ref offset, bytes);
+                                                
+                                            }
+                                            catch
+                                            {
+
+                                            }
                                         }
-                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>();
-                                        h3NetworkBlock.PullObject(ref offset, bytes);
-                                        h3NetworkBlock.islocal = false;
+                                        else if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>() == null)
+                                        {
+                                            try
+                                            {
+                                                H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.GetComponent<H3NetworkBlock>();
+                                                h3NetworkBlock.islocal = false;
+                                                h3NetworkBlock.PullObject(ref offset, bytes);
+                                                
+                                            }
+                                            catch
+                                            {
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                
+                                                blockBehaviours.Remove(blockBehaviour);
+                                                byteandbb.Add(new byteAndBB(blockBehaviour, offset));
+                                                
+                                                offset += 19;
+                                                
+                                                
+                                            }
+                                            catch
+                                            {
+
+                                            }
+                                        }
                                     }
-                                    else if (blockBehaviour.transform.parent.GetComponent<H3NetworkBlock>()==null)
+                                    catch
                                     {
-                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.transform.GetComponent<H3NetworkBlock>();
-                                        h3NetworkBlock.PullObject(ref offset, bytes);
-                                        h3NetworkBlock.islocal = false;
-                                    }
-                                    else
-                                    {
-                                        
-                                        blockBehaviours.Remove(blockBehaviour);
-                                        H3NetworkBlock h3NetworkBlock = blockBehaviour.GetComponent<H3NetworkBlock>();
-                                        h3NetworkBlock.PullObject(ref offset, bytes);
-                                        h3NetworkBlock.islocal = true;
-                                        
+
                                     }
                                     break;
                                 }
@@ -157,7 +203,14 @@ namespace Navalmod
                 {
 
                 }
-               
+               foreach(byteAndBB byteAndBB in byteandbb)
+                {
+                    H3NetworkBlock h3NetworkBlock = byteAndBB.bb.GetComponent<H3NetworkBlock>();
+                    h3NetworkBlock.islocal = true;
+                    int offsetE = 0;
+                    offsetE = byteAndBB.offset;
+                    h3NetworkBlock.PullObject(ref offsetE, bytes);
+                }
             }
             catch
             {
@@ -195,23 +248,44 @@ namespace Navalmod
             PlayerData playerData=Playerlist.Players[player];
 
             List<BlockBehaviour> blockBehaviours = new List<BlockBehaviour>();
-            foreach (Machine.SimCluster block in playerData.machine.simClusters)
+            try
             {
-                foreach (BlockBehaviour blockBehaviour in block.Blocks)
+                foreach (Machine.SimCluster block in playerData.machine.simClusters)
                 {
-                    if (blockBehaviour.transform.GetComponent<H3ClustersTest>() == null && blockBehaviour!=block.Base)
+                    try
                     {
-                        blockBehaviour.transform.gameObject.AddComponent<H3ClustersTest>().ClusterBaseBlock = block.Base;
+                        foreach (BlockBehaviour blockBehaviour in block.Blocks)
+                        {
+                            if (blockBehaviour.transform.GetComponent<H3ClustersTest>() == null && blockBehaviour != block.Base)
+                            {
+                                blockBehaviour.transform.gameObject.AddComponent<H3ClustersTest>().ClusterBaseBlock = block.Base;
+
+                            }
+                            H3ClustersTest h3ClustersTest = blockBehaviour.transform.GetComponent<H3ClustersTest>();
+                            if (h3ClustersTest.send == true)
+                            {
+                                h3ClustersTest.send = false;
+                                if (blockBehaviour.GetComponent<H3NetworkBlock>() == true)
+                                {
+                                    blockBehaviours.Add(blockBehaviour);
+                                }
+                               
+                            }
+                        }
+                        if (block.Base.GetComponent<H3NetworkBlock>() == true)
+                        {
+                            blockBehaviours.Add(block.Base);
+                        }
+                    }
+                    catch
+                    {
 
                     }
-                    H3ClustersTest h3ClustersTest = blockBehaviour.transform.GetComponent<H3ClustersTest>();
-                    if (h3ClustersTest.send == true)
-                    {
-                        h3ClustersTest.send = false;
-                        blockBehaviours.Add(blockBehaviour);
-                    }
                 }
-                blockBehaviours.Add(block.Base);
+            }
+            catch
+            {
+
             }
             byte[][] send = new byte[blockBehaviours.Count][];
             for (int i = 0; i < blockBehaviours.Count; i++)
